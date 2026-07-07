@@ -1,9 +1,9 @@
 import type { FastifyPluginAsync } from "fastify";
-import { AuthService } from "./auth.service.js";
-
-const service = new AuthService();
+import { authService as service } from "./auth.context.js";
 
 export const authRoutes: FastifyPluginAsync = async (app) => {
+  app.get("/provider", async () => ({ config: service.getProviderConfig() }));
+
   app.post("/login", async (request, reply) => {
     const body = request.body as { email?: string; password?: string };
 
@@ -16,6 +16,21 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
       return reply.send(result);
     } catch {
       return reply.status(401).send({ message: "invalid credentials" });
+    }
+  });
+
+  app.post("/register-organization", async (request, reply) => {
+    const body = request.body as { name?: string; slug?: string };
+
+    if (!body?.name || !body.slug) {
+      return reply.status(400).send({ message: "name and slug are required" });
+    }
+
+    try {
+      return reply.status(201).send(await service.registerOrganization({ name: body.name, slug: body.slug }));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "failed to register organization";
+      return reply.status(409).send({ message });
     }
   });
 };

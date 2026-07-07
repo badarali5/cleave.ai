@@ -1,9 +1,13 @@
 import type { FastifyPluginAsync } from "fastify";
-import { AuditService } from "./audit.service.js";
-import { InMemoryAuditRepository } from "./in-memory-audit.repository.js";
-
-const service = new AuditService(new InMemoryAuditRepository());
+import { auditService as service } from "./audit.context.js";
 
 export const auditRoutes: FastifyPluginAsync = async (app) => {
-  app.get("/", async () => ({ items: await service.list("00000000-0000-0000-0000-000000000000") }));
+  app.get("/", async (request) => {
+    const query = request.query as { organizationId?: string };
+    if (!query.organizationId) {
+      return { items: [] };
+    }
+
+    return { items: await service.list(query.organizationId) };
+  });
 };

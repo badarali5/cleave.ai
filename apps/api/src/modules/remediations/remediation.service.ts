@@ -3,11 +3,17 @@ import type { Recommendation } from "../recommendations/recommendation.types.js"
 import type { RecommendationRepository } from "../recommendations/recommendation.repository.js";
 import type { RemediationPlan, RemediationActionType } from "./remediation.types.js";
 import type { InMemoryRemediationRepository } from "./in-memory-remediation.repository.js";
+import type { AuditService } from "../audit/audit.service.js";
+import type { NotificationService } from "../notifications/notification.service.js";
+import type { LedgerService } from "../ledger/ledger.service.js";
 
 export class RemediationService {
   constructor(
     private readonly remediationRepository: InMemoryRemediationRepository,
     private readonly recommendationRepository: RecommendationRepository,
+    private readonly auditService: AuditService,
+    private readonly notificationService: NotificationService,
+    private readonly ledgerService: LedgerService,
   ) {}
 
   listPlans(organizationId: string) {
@@ -141,6 +147,15 @@ export class RemediationService {
       ],
     });
 
+    await this.auditService.record({
+      organizationId: recommendation.organizationId,
+      actorType: "agent",
+      action: "create_remediation_plan",
+      targetType: "remediation_plan",
+      targetId: plan.id,
+      metadata: { recommendationId: recommendation.id, actionType, estimatedMonthlySavings: recommendation.estimatedMonthlySavings },
+    });
+
     return plan;
   }
 
@@ -154,6 +169,23 @@ export class RemediationService {
     plan.status = "approved";
     plan.approvedAt = new Date().toISOString();
     await this.remediationRepository.save(plan);
+
+    await this.auditService.record({
+      organizationId: plan.organizationId,
+      actorType: "user",
+      action: "approve_remediation_plan",
+      targetType: "remediation_plan",
+      targetId: plan.id,
+      metadata: { recommendationId: plan.recommendationId, actionType: plan.actionType },
+    });
+
+    await this.notificationService.create({
+      organizationId: plan.organizationId,
+      userId: null,
+      channel: "in_app",
+      title: "Remediation plan approved",
+      body: `Plan ${plan.title} was approved and is ready for execution.`,
+    });
 
     const recommendation = await this.recommendationRepository.findById(plan.recommendationId);
     if (recommendation && recommendation.status === "open") {
@@ -192,6 +224,35 @@ export class RemediationService {
       await this.recommendationRepository.save(recommendation);
     }
 
+    await this.ledgerService.recordSavings({
+      organizationId: plan.organizationId,
+      recommendationId: plan.recommendationId,
+      remediationPlanId: plan.id,
+      periodStart: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+      periodEnd: new Date().toISOString(),
+      baselineCost: Number((plan.estimatedMonthlySavings * 1.2).toFixed(2)),
+      actualCost: Number((plan.estimatedMonthlySavings * 0.35).toFixed(2)),
+      expectedSavings: plan.estimatedMonthlySavings,
+      notes: `Executed ${plan.actionType} for ${plan.title}`,
+    });
+
+    await this.auditService.record({
+      organizationId: plan.organizationId,
+      actorType: "system",
+      action: "execute_remediation_plan",
+      targetType: "remediation_plan",
+      targetId: plan.id,
+      metadata: { recommendationId: plan.recommendationId, actionType: plan.actionType, result: plan.resultMessage },
+    });
+
+    await this.notificationService.create({
+      organizationId: plan.organizationId,
+      userId: null,
+      channel: "slack",
+      title: "Remediation executed",
+      body: `${plan.title} executed successfully. Estimated monthly savings: $${plan.estimatedMonthlySavings.toFixed(2)}.`,
+    });
+
     return plan;
   }
 
@@ -212,6 +273,23 @@ export class RemediationService {
       recommendation.status = "approved";
       await this.recommendationRepository.save(recommendation);
     }
+
+    await this.auditService.record({
+      organizationId: plan.organizationId,
+      actorType: "system",
+      action: "rollback_remediation_plan",
+      targetType: "remediation_plan",
+      targetId: plan.id,
+      metadata: { recommendationId: plan.recommendationId, actionType: plan.actionType, result: plan.resultMessage },
+    });
+
+    await this.notificationService.create({
+      organizationId: plan.organizationId,
+      userId: null,
+      channel: "in_app",
+      title: "Remediation rolled back",
+      body: `Rollback recorded for ${plan.title}. Review the audit log for details.`,
+    });
 
     return plan;
   }

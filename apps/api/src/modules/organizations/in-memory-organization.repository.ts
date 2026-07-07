@@ -10,6 +10,11 @@ export class InMemoryOrganizationRepository implements OrganizationRepository {
   }
 
   async create(input: { name: string; slug: string }) {
+    const existing = this.organizations.find((organization) => organization.slug === input.slug);
+    if (existing) {
+      throw new Error("organization slug already exists");
+    }
+
     const organization: Organization = {
       id: randomUUID(),
       name: input.name,
