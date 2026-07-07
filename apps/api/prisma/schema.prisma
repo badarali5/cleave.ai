@@ -1,0 +1,303 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum CloudProvider {
+  aws
+}
+
+enum MembershipRole {
+  owner
+  admin
+  engineer
+  finance
+  viewer
+}
+
+enum AwsIntegrationStatus {
+  pending
+  connected
+  error
+  disabled
+}
+
+enum RecommendationStatus {
+  open
+  approved
+  executing
+  executed
+  rejected
+}
+
+enum RemediationJobStatus {
+  queued
+  running
+  succeeded
+  failed
+  rolled_back
+}
+
+enum NotificationChannel {
+  email
+  slack
+  in_app
+}
+
+enum NotificationStatus {
+  queued
+  sent
+  failed
+}
+
+enum ReportType {
+  executive
+  engineering
+  weekly
+  monthly
+}
+
+model User {
+  id             String        @id @default(uuid())
+  email          String        @unique
+  name           String
+  passwordHash   String?
+  memberships    Membership[]
+  sessions       Session[]
+  notifications  Notification[]
+  auditLogs      AuditLog[]    @relation("AuditActorUser")
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+model Organization {
+  id               String              @id @default(uuid())
+  name             String
+  slug             String              @unique
+  billingEmail     String?
+  timezone         String              @default("UTC")
+  memberships      Membership[]
+  awsIntegrations   AwsIntegration[]
+  cloudAccounts    CloudAccount[]
+  resources        Resource[]
+  costRecords      CostRecord[]
+  recommendations  Recommendation[]
+  remediationJobs  RemediationJob[]
+  savingsRecords   SavingsRecord[]
+  reports          Report[]
+  auditLogs        AuditLog[]
+  agentExecutions  AgentExecution[]
+  notifications    Notification[]
+  sessions         Session[]
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+}
+
+model Membership {
+  id             String           @id @default(uuid())
+  userId         String
+  organizationId String
+  role           MembershipRole
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@unique([userId, organizationId])
+}
+
+model AwsIntegration {
+  id             String               @id @default(uuid())
+  organizationId String
+  provider       CloudProvider        @default(aws)
+  externalId     String               @unique
+  roleArn        String
+  status         AwsIntegrationStatus @default(pending)
+  organization   Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+}
+
+model CloudAccount {
+  id                String           @id @default(uuid())
+  organizationId    String
+  provider         CloudProvider     @default(aws)
+  externalAccountId String
+  alias            String?
+  status           String           @default("active")
+  organization     Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  resources        Resource[]
+  costRecords      CostRecord[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@unique([organizationId, provider, externalAccountId])
+}
+
+model Resource {
+  id                String             @id @default(uuid())
+  organizationId    String
+  cloudAccountId    String?
+  provider          CloudProvider      @default(aws)
+  kind              String
+  resourceArn       String             @unique
+  externalId        String?
+  name              String?
+  region            String?
+  status            String             @default("active")
+  tags              Json?
+  lastSeenAt        DateTime?
+  organization      Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  cloudAccount      CloudAccount?      @relation(fields: [cloudAccountId], references: [id], onDelete: SetNull)
+  costRecords       CostRecord[]
+  recommendations   Recommendation[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+}
+
+model CostRecord {
+  id             String         @id @default(uuid())
+  organizationId String
+  cloudAccountId String?
+  resourceId     String?
+  usageDate      DateTime
+  service        String
+  usageType      String
+  cost           Decimal        @db.Decimal(18, 6)
+  usageQuantity  Decimal        @db.Decimal(18, 6)
+  currency       String         @default("USD")
+  rawLineItem    Json?
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  cloudAccount   CloudAccount?  @relation(fields: [cloudAccountId], references: [id], onDelete: SetNull)
+  resource       Resource?      @relation(fields: [resourceId], references: [id], onDelete: SetNull)
+  createdAt      DateTime       @default(now())
+
+  @@index([organizationId, usageDate])
+  @@index([organizationId, service])
+}
+
+model Recommendation {
+  id                     String              @id @default(uuid())
+  organizationId         String
+  resourceId             String?
+  category               String
+  title                  String
+  explanation            String
+  estimatedMonthlySavings Decimal            @db.Decimal(18, 2)
+  confidenceScore        Float
+  riskScore              Float
+  status                 RecommendationStatus @default(open)
+  evidence               Json?
+  modelName              String?
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
+  organization           Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  resource               Resource?           @relation(fields: [resourceId], references: [id], onDelete: SetNull)
+  remediationJobs        RemediationJob[]
+  savingsRecords         SavingsRecord[]
+  agentExecutions        AgentExecution[]
+  auditLogs              AuditLog[]
+}
+
+model RemediationJob {
+  id              String              @id @default(uuid())
+  organizationId  String
+  recommendationId String
+  actionType      String
+  payload         Json
+  status          RemediationJobStatus @default(queued)
+  approvedByUserId String?
+  approvedAt      DateTime?
+  executedAt      DateTime?
+  rollbackPayload Json?
+  errorMessage    String?
+  organization    Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  recommendation  Recommendation      @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+}
+
+model SavingsRecord {
+  id                   String        @id @default(uuid())
+  organizationId       String
+  recommendationId     String?
+  baselineCost         Decimal       @db.Decimal(18, 2)
+  actualCost           Decimal       @db.Decimal(18, 2)
+  savingsAmount        Decimal       @db.Decimal(18, 2)
+  measurementWindowStart DateTime
+  measurementWindowEnd DateTime
+  organization         Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  recommendation       Recommendation? @relation(fields: [recommendationId], references: [id], onDelete: SetNull)
+  createdAt            DateTime      @default(now())
+}
+
+model Report {
+  id             String      @id @default(uuid())
+  organizationId String
+  reportType     ReportType
+  title          String
+  summary        String
+  fileUrl        String
+  periodStart    DateTime
+  periodEnd      DateTime
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+}
+
+model AuditLog {
+  id             String         @id @default(uuid())
+  organizationId String
+  actorUserId    String?
+  actorType      String
+  action         String
+  targetType     String
+  targetId       String?
+  metadata       Json?
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actorUser      User?          @relation("AuditActorUser", fields: [actorUserId], references: [id], onDelete: SetNull)
+  createdAt      DateTime       @default(now())
+}
+
+model AgentExecution {
+  id             String       @id @default(uuid())
+  organizationId String
+  agentName      String
+  modelName      String
+  status         String
+  inputRef       String?
+  outputRef      String?
+  tokensUsed     Int?
+  latencyMs      Int?
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+}
+
+model Notification {
+  id             String              @id @default(uuid())
+  organizationId String
+  userId         String?
+  channel        NotificationChannel
+  title          String
+  body           String
+  status         NotificationStatus  @default(queued)
+  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt      DateTime            @default(now())
+  sentAt         DateTime?
+}
+
+model Session {
+  id             String       @id @default(uuid())
+  organizationId String?
+  userId         String
+  channel        String
+  summary        String?
+  startedAt      DateTime     @default(now())
+  endedAt        DateTime?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
