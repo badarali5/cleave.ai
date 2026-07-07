@@ -1,5 +1,5 @@
 import type { RecommendationRepository } from "./recommendation.repository.js";
-import { generateRecommendations, type RecommendationGenerationInput } from "../../../../../packages/domain/src/recommendation-engine.js";
+import { generateRecommendations, type RecommendationGenerationInput } from "./recommendation-engine.js";
 import type { Recommendation } from "./recommendation.types.js";
 
 export class RecommendationService {
@@ -29,7 +29,12 @@ export class RecommendationService {
       return null;
     }
 
-    recommendation.status = "executed";
+    if (recommendation.riskScore >= 0.25) {
+      recommendation.status = "approved";
+    } else {
+      recommendation.status = "executed";
+    }
+
     await this.repository.save(recommendation);
 
     return recommendation;

@@ -14,6 +14,7 @@
 - Add AI summarization and ranking.
 - Build approval and remediation workflows.
 - Build the recommendation engine over normalized billing and resource facts.
+- Build plan-first remediation execution with approval and rollback.
 
 ## Phase 3
 

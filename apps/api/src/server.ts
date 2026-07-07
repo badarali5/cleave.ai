@@ -12,6 +12,7 @@ import { reportRoutes } from "./modules/reports/report.routes.js";
 import { savingsRoutes } from "./modules/savings/savings.routes.js";
 import { resourceRoutes } from "./modules/resources/resource.routes.js";
 import { billingIngestionRoutes } from "./modules/billing-ingestion/billing-ingestion.routes.js";
+import { remediationRoutes } from "./modules/remediations/remediation.routes.js";
 
 export function buildApp() {
   const app = Fastify({
@@ -38,6 +39,7 @@ export function buildApp() {
   app.register(resourceRoutes, { prefix: "/resources" });
   app.register(reportRoutes, { prefix: "/reports" });
   app.register(savingsRoutes, { prefix: "/savings" });
+  app.register(remediationRoutes, { prefix: "/remediations" });
   app.register(auditRoutes, { prefix: "/audit-logs" });
   app.register(notificationRoutes, { prefix: "/notifications" });
 

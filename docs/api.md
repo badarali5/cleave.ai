@@ -27,6 +27,11 @@ The API is REST-first and tenant-aware.
 - `POST /recommendations/generate`
 - `POST /recommendations/:id/approve`
 - `POST /recommendations/:id/execute`
+- `GET /remediations`
+- `POST /remediations/from-recommendation/:id`
+- `POST /remediations/:id/approve`
+- `POST /remediations/:id/execute`
+- `POST /remediations/:id/rollback`
 - `GET /reports`
 - `GET /savings`
 - `GET /audit-logs`
@@ -76,6 +81,27 @@ The engine produces ranked recommendations using deterministic rules for:
 - Savings Plans and Reserved Instance review
 
 Each recommendation includes a savings estimate, a confidence score, and a risk score.
+
+## Remediation contract
+
+`POST /remediations/from-recommendation/:id` creates a safe remediation plan from an approved or open recommendation.
+
+The plan includes:
+
+- action type
+- preflight checks
+- execution steps
+- rollback steps
+- approval requirement
+- risk and confidence scores
+- safety notes
+
+`POST /remediations/:id/approve` marks the plan approved.
+
+`POST /remediations/:id/execute` executes the plan only if approval is not required or has already been granted.
+
+`POST /remediations/:id/rollback` records the rollback outcome and updates the related recommendation status.
+
 
 
 

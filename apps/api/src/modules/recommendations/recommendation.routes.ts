@@ -1,8 +1,5 @@
 import type { FastifyPluginAsync } from "fastify";
-import { InMemoryRecommendationRepository } from "./in-memory-recommendation.repository.js";
-import { RecommendationService } from "./recommendation.service.js";
-
-const service = new RecommendationService(new InMemoryRecommendationRepository());
+import { recommendationService as service } from "./recommendation.context.js";
 
 export const recommendationRoutes: FastifyPluginAsync = async (app) => {
   app.get("/", async () => ({ items: await service.listRecommendations() }));
@@ -45,12 +42,12 @@ export const recommendationRoutes: FastifyPluginAsync = async (app) => {
       organizationId: body.organizationId,
       cloudAccountId: body.cloudAccountId,
       billingSummary: {
-        jobId: body.billingSummary.jobId,
         organizationId: body.organizationId,
         cloudAccountId: body.cloudAccountId,
         lineItemsParsed: body.billingSummary.lineItemsParsed ?? 0,
         totalCost: body.billingSummary.totalCost ?? 0,
         services: body.billingSummary.services ?? [],
+        ...(body.billingSummary.jobId ? { jobId: body.billingSummary.jobId } : {}),
       },
       resources: body.resources ?? [],
     });
