@@ -1,0 +1,57 @@
+[
+  {
+    "organizationId": "00000000-0000-0000-0000-000000000000",
+    "actorType": "agent",
+    "action": "create_remediation_plan",
+    "targetType": "remediation_plan",
+    "metadata": {
+      "recommendationId": "11111111-1111-1111-1111-111111111111",
+      "actionType": "stop_ec2",
+      "estimatedMonthlySavings": 124.32
+    },
+    "targetId": "afc00ea7-fd59-452a-bd6b-97a8ac4933d7",
+    "id": "a11faac6-dee6-48a7-bd9c-9388da730dfd",
+    "createdAt": "2026-07-08T20:28:21.001Z"
+  },
+  {
+    "organizationId": "00000000-0000-0000-0000-000000000000",
+    "actorType": "user",
+    "action": "approve_remediation_plan",
+    "targetType": "remediation_plan",
+    "metadata": {
+      "recommendationId": "11111111-1111-1111-1111-111111111111",
+      "actionType": "stop_ec2"
+    },
+    "targetId": "afc00ea7-fd59-452a-bd6b-97a8ac4933d7",
+    "id": "aede4f3a-9731-4a0b-9686-90329617f959",
+    "createdAt": "2026-07-08T20:28:21.005Z"
+  },
+  {
+    "organizationId": "00000000-0000-0000-0000-000000000000",
+    "actorType": "system",
+    "action": "execute_remediation_plan",
+    "targetType": "remediation_plan",
+    "metadata": {
+      "recommendationId": "11111111-1111-1111-1111-111111111111",
+      "actionType": "stop_ec2",
+      "result": "Executed stop_ec2 with preflight checks and rollback metadata recorded."
+    },
+    "targetId": "afc00ea7-fd59-452a-bd6b-97a8ac4933d7",
+    "id": "9ab1ef03-b386-4e04-9a1e-890df61dee02",
+    "createdAt": "2026-07-08T20:28:21.015Z"
+  },
+  {
+    "organizationId": "00000000-0000-0000-0000-000000000000",
+    "actorType": "system",
+    "action": "rollback_remediation_plan",
+    "targetType": "remediation_plan",
+    "metadata": {
+      "recommendationId": "11111111-1111-1111-1111-111111111111",
+      "actionType": "stop_ec2",
+      "result": "Rollback recorded for stop_ec2. Manual AWS reversal may still be required."
+    },
+    "targetId": "afc00ea7-fd59-452a-bd6b-97a8ac4933d7",
+    "id": "5a43eeac-0d0f-4ccf-a79d-2a008c81b1f7",
+    "createdAt": "2026-07-08T20:28:21.027Z"
+  }
+]

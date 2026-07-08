@@ -103,6 +103,8 @@ export const recommendationSchema = z.object({
   riskScore: z.number().min(0).max(1),
   status: z.enum(["open", "approved", "executing", "executed", "rejected"]),
   createdAt: z.string().datetime(),
+  remediationScript: z.string().optional(),
+  riskScore1To5: z.number().optional(),
 });
 
 export const remediationJobSchema = z.object({

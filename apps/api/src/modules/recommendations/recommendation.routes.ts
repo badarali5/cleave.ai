@@ -68,16 +68,40 @@ export const recommendationRoutes: FastifyPluginAsync = async (app) => {
 
   app.post("/:id/execute", async (request, reply) => {
     const { id } = request.params as { id: string };
-    const recommendation = await service.executeRecommendation(id);
+    const recommendation = await service.executingRecommendation(id);
 
     if (!recommendation) {
       return reply.status(404).send({ message: "recommendation not found" });
     }
 
+    const { randomUUID } = await import("node:crypto");
+    const { InMemoryJobQueue } = await import("../../../../worker/src/queue/in-memory-job-queue.js");
+    const queue = new InMemoryJobQueue();
+
+    queue.enqueue({
+      id: `job-remediation-${randomUUID()}`,
+      type: "remediation-execution",
+      payload: {
+        recommendationId: recommendation.id,
+        organizationId: recommendation.organizationId,
+      },
+    });
+
     return reply.send({
       recommendation,
-      jobStatus: "succeeded",
+      jobStatus: "queued",
       rollbackAvailable: true,
     });
+  });
+
+  app.post("/:id/reject", async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const recommendation = await service.rejectRecommendation(id);
+
+    if (!recommendation) {
+      return reply.status(404).send({ message: "recommendation not found" });
+    }
+
+    return reply.send({ recommendation });
   });
 };

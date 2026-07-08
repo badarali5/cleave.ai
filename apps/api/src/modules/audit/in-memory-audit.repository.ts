@@ -1,17 +1,26 @@
+import { readDbFile, writeDbFile } from "@finops/domain";
 import { randomUUID } from "node:crypto";
 import type { AuditEvent } from "./audit.types.js";
 
 export class InMemoryAuditRepository {
-  private readonly events: AuditEvent[] = [];
+  private get events(): AuditEvent[] {
+    return readDbFile<AuditEvent[]>("audit.json", []);
+  }
+
+  private set events(value: AuditEvent[]) {
+    writeDbFile("audit.json", value);
+  }
 
   async append(input: Omit<AuditEvent, "id" | "createdAt"> & { targetId?: string }) {
+    const currentEvents = this.events;
     const event: AuditEvent = {
       ...input,
       id: randomUUID(),
       createdAt: new Date().toISOString(),
     };
 
-    this.events.push(event);
+    currentEvents.push(event);
+    this.events = currentEvents;
 
     return event;
   }

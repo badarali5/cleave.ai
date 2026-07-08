@@ -22,6 +22,19 @@ export class RecommendationService {
     return recommendation;
   }
 
+  async rejectRecommendation(id: string) {
+    const recommendation = await this.repository.findById(id);
+
+    if (!recommendation) {
+      return null;
+    }
+
+    recommendation.status = "rejected";
+    await this.repository.save(recommendation);
+
+    return recommendation;
+  }
+
   async executeRecommendation(id: string) {
     const recommendation = await this.repository.findById(id);
 
@@ -37,6 +50,20 @@ export class RecommendationService {
 
     await this.repository.save(recommendation);
 
+    return recommendation;
+  }
+
+  async getRecommendationById(id: string) {
+    return this.repository.findById(id);
+  }
+
+  async executingRecommendation(id: string) {
+    const recommendation = await this.repository.findById(id);
+    if (!recommendation) {
+      return null;
+    }
+    recommendation.status = "executing";
+    await this.repository.save(recommendation);
     return recommendation;
   }
 

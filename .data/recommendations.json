@@ -1,0 +1,67 @@
+[
+  {
+    "id": "11111111-1111-1111-1111-111111111111",
+    "organizationId": "00000000-0000-0000-0000-000000000000",
+    "resourceId": null,
+    "category": "idle_ec2",
+    "title": "Idle EC2 instance detected",
+    "explanation": "The instance has low CPU and network activity over the last 14 days.",
+    "estimatedMonthlySavings": 124.32,
+    "confidenceScore": 0.91,
+    "riskScore": 0.22,
+    "status": "approved",
+    "createdAt": "2026-07-08T20:26:33.094Z"
+  },
+  {
+    "id": "caa7ebb1-a67b-4d5d-9631-7145fcd82eb8",
+    "organizationId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    "resourceId": "dddddddd-dddd-dddd-dddd-dddddddddddd",
+    "category": "unattached_ebs",
+    "title": "Unattached EBS volume: orphaned-volume",
+    "explanation": "The volume is not attached to any instance and can be cleaned up after snapshot review.",
+    "estimatedMonthlySavings": 22.5,
+    "confidenceScore": 0.97,
+    "riskScore": 0.14,
+    "status": "open",
+    "createdAt": "2026-07-08T20:26:33.093Z"
+  },
+  {
+    "id": "dad69055-e666-403c-87cf-1acdbcd2d52a",
+    "organizationId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    "resourceId": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+    "category": "idle_ec2",
+    "title": "Idle EC2 instance: staging-instance",
+    "explanation": "The instance has sustained low CPU and network activity over the observation window.",
+    "estimatedMonthlySavings": 4.62,
+    "confidenceScore": 0.918,
+    "riskScore": 0.18,
+    "status": "open",
+    "createdAt": "2026-07-08T20:26:33.091Z"
+  },
+  {
+    "id": "67bc1ea3-caa7-4093-8e72-49d3af14d460",
+    "organizationId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    "resourceId": "dddddddd-dddd-dddd-dddd-dddddddddddd",
+    "category": "unattached_ebs",
+    "title": "Unattached EBS volume: orphaned-volume",
+    "explanation": "The volume is not attached to any instance and can be cleaned up after snapshot review.",
+    "estimatedMonthlySavings": 22.5,
+    "confidenceScore": 0.97,
+    "riskScore": 0.14,
+    "status": "open",
+    "createdAt": "2026-07-08T20:28:20.646Z"
+  },
+  {
+    "id": "5a97beb8-d2c3-4df0-b221-e794dff1b3af",
+    "organizationId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    "resourceId": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+    "category": "idle_ec2",
+    "title": "Idle EC2 instance: staging-instance",
+    "explanation": "The instance has sustained low CPU and network activity over the observation window.",
+    "estimatedMonthlySavings": 4.62,
+    "confidenceScore": 0.918,
+    "riskScore": 0.18,
+    "status": "open",
+    "createdAt": "2026-07-08T20:28:20.645Z"
+  }
+]

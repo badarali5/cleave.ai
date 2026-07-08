@@ -6,6 +6,7 @@ import {
   buildRoleName,
   buildStackName,
 } from "./aws.template.js";
+import { validateAssumeRoleInput, type AwsValidationResult } from "./aws.validation.js";
 import type { AwsConnectionPlan, AwsConnectionRequest } from "./aws.types.js";
 
 const defaultPrincipalArn = process.env.AWS_SAAS_PRINCIPAL_ARN ?? "arn:aws:iam::123456789012:role/NimbusFinOpsBackendRole";
@@ -80,6 +81,20 @@ export class AwsOnboardingService {
 
   confirmConnection(planId: string) {
     return this.repository.markConnected(planId);
+  }
+
+  async validateConnection(planId: string, input: { roleArn: string; externalId: string }): Promise<AwsValidationResult | null> {
+    const plan = await this.repository.findById(planId);
+
+    if (!plan) {
+      return null;
+    }
+
+    return validateAssumeRoleInput({
+      plan,
+      roleArn: input.roleArn,
+      externalId: input.externalId,
+    });
   }
 }
 

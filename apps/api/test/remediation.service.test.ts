@@ -2,12 +2,21 @@ import { describe, expect, it } from "vitest";
 import { InMemoryRecommendationRepository } from "../src/modules/recommendations/in-memory-recommendation.repository.js";
 import { InMemoryRemediationRepository } from "../src/modules/remediations/in-memory-remediation.repository.js";
 import { RemediationService } from "../src/modules/remediations/remediation.service.js";
+import { auditService } from "../src/modules/audit/audit.context.js";
+import { notificationService } from "../src/modules/notifications/notification.context.js";
+import { ledgerService } from "../src/modules/ledger/ledger.context.js";
 
 describe("RemediationService", () => {
   it("creates, approves, executes, and rolls back a remediation plan", async () => {
     const recommendationRepository = new InMemoryRecommendationRepository();
     const remediationRepository = new InMemoryRemediationRepository();
-    const service = new RemediationService(remediationRepository, recommendationRepository);
+    const service = new RemediationService(
+      remediationRepository,
+      recommendationRepository,
+      auditService,
+      notificationService,
+      ledgerService,
+    );
 
     const plan = await service.createPlanFromRecommendation("11111111-1111-1111-1111-111111111111");
 

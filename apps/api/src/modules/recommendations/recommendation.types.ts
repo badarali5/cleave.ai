@@ -10,4 +10,6 @@ export type Recommendation = {
   riskScore: number;
   status: "open" | "approved" | "executing" | "executed" | "rejected";
   createdAt: string;
+  remediationScript?: string;
+  riskScore1To5?: number;
 };
